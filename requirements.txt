@@ -1,0 +1,8 @@
+azure-functions==1.21.3
+azure-functions-durable==1.2.9
+pandas
+requests
+azure-storage-blob
+python-dateutil
+pyodbc
+azure-identity
