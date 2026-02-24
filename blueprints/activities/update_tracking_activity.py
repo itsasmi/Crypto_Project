@@ -24,10 +24,19 @@ def update_tracking_activity(params: dict) -> bool:
     last_processed_ts_raw = params.get("last_processed_timestamp")
     total_row_count = params.get("record_count")
 
-    # 🔒 FIX: dict-safe handling (NO logic change)
+    # 🔒 FIX: dict-safe handling
     if isinstance(total_row_count, dict):
         total_row_count = total_row_count.get("rows_written", 0)
 
+    # ✅ Pure += always — never subtract
+    # tracking["row_count"] is always CUMULATIVE total across ALL months
+    # subtract would wipe out all prior months' counts
+    # fetch_from in orchestrators already ensures only NEW rows are counted
+    # so we just always add new_rows on top — safe for all cases:
+    # CASE 0 manual same month  → += new rows only (fetch_from set)    ✅
+    # CASE 1 current month      → += new rows only (fetch_from set)    ✅
+    # CASE 2 past incomplete    → += new rows only (fetch_from set)    ✅
+    # CASE 3 clean boundary     → += all rows (fetch_from=None)        ✅
 
     if not trading_pair or not last_processed_ts_raw or total_row_count is None:
         raise ValueError(
@@ -66,7 +75,7 @@ def update_tracking_activity(params: dict) -> bool:
                         """,
                         (
                             last_processed_ts,
-                            int(total_row_count),
+                            int(total_row_count), # new rows only — always safe to add
                             system_update_time,
                             trading_pair
                         )
@@ -99,7 +108,8 @@ def update_tracking_activity(params: dict) -> bool:
                 conn.commit()
 
         logging.info(
-            f"[TrackingUpdate] Successfully updated {trading_pair}"
+            f"[TrackingUpdate] Successfully updated {trading_pair} | "
+            f"added: {int(total_row_count)}"
         )
         return True
 

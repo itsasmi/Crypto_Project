@@ -10,6 +10,8 @@ from timer_orchestrator import bp as timer_orchestrator_bp
 from symbol_orchestrator import bp as symbol_orchestrator
 from blueprints.http_manual_trigger import bp as http_bp
 from hybrid_orchestrator import bp as hybrid_bp
+from pipeline_orchestrator import bp as pipeline_orchestrator_bp
+from adf_manual_orchestrator import bp as adf_manual_orchestrator_bp
 # Register blueprints
 from blueprints.daily_timer_trigger import bp as daily_timer_bp
 from blueprints.activities.fetch_and_write_activity import bp as fetch_and_write_bp
@@ -18,7 +20,8 @@ from blueprints.activities.update_tracking_activity import bp as update_tracking
 from blueprints.activities.resume_synapse_activity import bp as resume_synapse_bp
 from blueprints.activities.pause_synapse_activity import bp as pause_synapse_bp
 from blueprints.activities.check_synapse_ready_activity import bp as check_synapse_ready_bp
-
+from blueprints.trigger_adf_pipeline_activity import bp as trigger_adf_bp
+from blueprints.http_trigger_adf_manual import bp as http_adf_manual_bp
 app.register_blueprint(check_synapse_ready_bp)
 app.register_blueprint(http_bp)
 app.register_blueprint(hybrid_bp)
@@ -30,4 +33,8 @@ app.register_blueprint(resume_synapse_bp)
 app.register_blueprint(pause_synapse_bp)
 app.register_blueprint(timer_orchestrator_bp)
 app.register_blueprint(symbol_orchestrator)
+app.register_blueprint(trigger_adf_bp)
+app.register_blueprint(pipeline_orchestrator_bp)
+app.register_blueprint(http_adf_manual_bp)
+app.register_blueprint(adf_manual_orchestrator_bp)
 logging.info("Function App initialized with all orchestrators and blueprints.")

@@ -1,18 +1,21 @@
+import os
 import azure.functions as func
 import azure.durable_functions as df
 import logging
 
 bp = df.Blueprint()
 
-TRADING_PAIRS = ["BTCUSDT", "ETHUSDT", "LINKUSDT", "SOLUSDT", "MATICUSDT"]
+# TRADING_PAIRS = ["BTCUSDT", "ETHUSDT", "LINKUSDT", "SOLUSDT", "BNBUSDT"]
+TRADING_PAIRS = []
 INSTANCE_ID = "daily-timer-orchestrator"
 
 
 @bp.timer_trigger(
-    schedule="0 55 6 * * *",
+    schedule="0 40 12 * * *",
     arg_name="timer",
-    run_on_startup=True
+    run_on_startup=False
 )
+
 @bp.durable_client_input(client_name="client")
 async def daily_timer_trigger(
     timer: func.TimerRequest,
