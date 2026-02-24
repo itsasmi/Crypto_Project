@@ -5,13 +5,12 @@ import logging
 
 bp = df.Blueprint()
 
-# TRADING_PAIRS = ["BTCUSDT", "ETHUSDT", "LINKUSDT", "SOLUSDT", "BNBUSDT"]
-TRADING_PAIRS = []
+TRADING_PAIRS = ["BTCUSDT", "ETHUSDT", "LINKUSDT", "SOLUSDT", "BNBUSDT"]
 INSTANCE_ID = "daily-timer-orchestrator"
 
 
 @bp.timer_trigger(
-    schedule="0 40 12 * * *",
+    schedule="0 0 7 * * *",
     arg_name="timer",
     run_on_startup=False
 )
