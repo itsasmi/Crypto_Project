@@ -1,0 +1,17 @@
+{
+	"name": "Update_Tracking_Table",
+	"properties": {
+		"content": {
+			"query": "-- Drop the existing stored procedure\nDROP PROCEDURE logging.sp_UpdateSilverTracking;\nGO\n\nCREATE PROCEDURE logging.SP_UpdateTracking\n    @trading_pair VARCHAR(100)\nAS\nBEGIN\n    SET NOCOUNT ON;\n    \n    DECLARE @TotalRowCount BIGINT;\n    DECLARE @SystemUpdateTime DATETIME2;\n    DECLARE @TableName VARCHAR(50) = 'crypto_candles'; \n    DECLARE @LastTimestamp DATETIME2;\n\n    -- Get latest watermark and count from silver table\n    SELECT \n        @LastTimestamp = MAX(close_timestamp),\n        @TotalRowCount = COUNT(*)\n    FROM silver.crypto_candles\n    WHERE trading_pair = @trading_pair;\n\n    SET @TotalRowCount = ISNULL(@TotalRowCount, 0);\n    SET @SystemUpdateTime = GETUTCDATE();\n\n    -- UPSERT logic\n    IF EXISTS (\n        SELECT 1 \n        FROM logging.TrackingTable \n        WHERE Table_Name = @TableName \n        AND trading_pair = @trading_pair\n    )\n    BEGIN\n        UPDATE logging.TrackingTable\n        SET\n            Last_Processed_Timestamp = @LastTimestamp,\n            Record_Count = @TotalRowCount,\n            System_Update_Time = @SystemUpdateTime,\n            Full_refresh = 0  \n        WHERE\n            Table_Name = @TableName\n            AND trading_pair = @trading_pair;\n    END\n    ELSE\n    BEGIN\n        INSERT INTO logging.TrackingTable\n        (\n            Table_Name,\n            trading_pair,\n            Last_Processed_Timestamp,\n            Record_Count,\n            System_Update_Time,\n            Full_refresh\n        )\n        VALUES\n        (\n            @TableName,\n            @trading_pair,\n            @LastTimestamp,\n            @TotalRowCount,\n            @SystemUpdateTime,\n            0\n        );\n    END\nEND;\nGO\n\nselect * from silver.crypto_candles where trading_pair = 'ETCUSDT' order by close_timestamp DESC;\n\nSELECT * from logging.TrackingTable;\n\nSELECT * from gold.crypto_candles_reporting;\n\nselect count(*) from silver.crypto_candles where trading_pair = 'BTCUSDT';\n\nselect * from silver.crypto_candles where trading_pair = 'ETHUSDT' order by close_timestamp desc;\n\nselect * from silver.crypto_candles where close_timestamp > '2026-02-23T08:30:00.000000';\n\nselect * from sys.objects;\nselect * from sys.tables;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sql_dw_silver",
+				"poolName": "sql_dw_silver"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

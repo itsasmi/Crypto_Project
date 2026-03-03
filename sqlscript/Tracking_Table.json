@@ -1,0 +1,17 @@
+{
+	"name": "Tracking_Table",
+	"properties": {
+		"content": {
+			"query": "IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'logging')\nBEGIN \n    EXEC('CREATE SCHEMA logging')\nEND\nGO\n\n-- 2. Create Unified Tracking Table\nIF OBJECT_ID('logging.TrackingTable', 'U') IS NOT NULL\n    DROP TABLE logging.TrackingTable;\nGO \n\nCREATE TABLE logging.TrackingTable (\n    Table_Name VARCHAR(50) NOT NULL,           \n    trading_pair VARCHAR(100) NOT NULL,        \n    Last_Processed_Timestamp DATETIME2,        \n    Record_Count BIGINT,                       \n    System_Update_Time DATETIME2 NOT NULL,     \n    Full_refresh BIT DEFAULT 0                 \n)\nWITH (\n    DISTRIBUTION = ROUND_ROBIN,\n    CLUSTERED COLUMNSTORE INDEX\n);\nGO\n\ndelete from logging.TrackingTable where trading_pair = 'ETCUSDT';\n\nselect * from logging.TrackingTable order by trading_pair;\n\ndelete from logging.TrackingTable WHERE trading_pair = '\"BNBUSDT\"'\n  AND Table_Name = 'crypto_candles' and Full_refresh = 0;\n\nINSERT into logging.TrackingTable (Full_refresh, Table_Name, trading_pair, System_Update_Time)\nvalues (1, 'crypto_candles', 'SOLUSDT', '2021-01-01 00:00:00');\n\nUPDATE logging.TrackingTable\nSET Full_refresh = 'True'\nWHERE Table_Name = 'crypto_candles';",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sql_dw_silver",
+				"poolName": "sql_dw_silver"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

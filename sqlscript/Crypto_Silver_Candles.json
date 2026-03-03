@@ -1,0 +1,17 @@
+{
+	"name": "Crypto_Silver_Candles",
+	"properties": {
+		"content": {
+			"query": "IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'silver')\nBEGIN\n    EXEC ('CREATE SCHEMA silver');\nEND;\nGO\n\nCREATE TABLE silver.crypto_candles\n(\n    trading_pair                VARCHAR(20)   NOT NULL,\n    base_asset                  VARCHAR(10)   NOT NULL,\n    quote_asset                 VARCHAR(10)   NOT NULL,\n\n    open_timestamp              DATETIME2     NOT NULL,\n    close_timestamp             DATETIME2     NOT NULL,\n    trade_date                  DATE          NOT NULL,\n\n    open_price                  FLOAT         NOT NULL,\n    high_price                  FLOAT         NOT NULL,\n    low_price                   FLOAT         NOT NULL,\n    close_price                 FLOAT         NOT NULL,\n\n    volume                      FLOAT         NOT NULL,\n    quote_volume                FLOAT         NOT NULL,\n    number_of_trades             INT           NOT NULL,\n    taker_buy_base_volume       FLOAT         NOT NULL,\n    taker_buy_quote_volume      FLOAT         NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = HASH(trading_pair),\n    CLUSTERED COLUMNSTORE INDEX\n);  \n\nCREATE TABLE silver.crypto_candles2\n(\n    trading_pair                VARCHAR(20)   NOT NULL,\n    base_asset                  VARCHAR(10)   NOT NULL,\n    quote_asset                 VARCHAR(10)   NOT NULL,\n\n    open_timestamp              DATETIME2     NOT NULL,\n    close_timestamp             DATETIME2     NOT NULL,\n    trade_date                  DATE          NOT NULL,\n\n    open_price                  FLOAT         NOT NULL,\n    high_price                  FLOAT         NOT NULL,\n    low_price                   FLOAT         NOT NULL,\n    close_price                 FLOAT         NOT NULL,\n\n    volume                      FLOAT         NOT NULL,\n    quote_volume                FLOAT         NOT NULL,\n    number_of_trades             INT           NOT NULL,\n    taker_buy_base_volume       FLOAT         NOT NULL,\n    taker_buy_quote_volume      FLOAT         NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = HASH(trading_pair),\n    CLUSTERED COLUMNSTORE INDEX\n);  \n\nselect * from sys.tables;\n\nSELECT * FROM silver.crypto_candles \nWHERE trading_pair = 'BTCUSDT' \nORDER BY open_timestamp DESC;\n\nSELECT COUNT(open_timestamp) FROM silver.crypto_candles;\n\nSELECT DISTINCT trading_pair FROM silver.crypto_candles;\n\nTRUNCATE TABLE silver.crypto_candles2;\nselect * from silver.crypto_candles2;\n\ndelete from silver.crypto_candles where trading_pair = 'BTCUSDT';\n\nDELETE FROM logging.TrackingTable where trading_pair IN ('BTCUSDT', 'ETHUSDT') AND Table_Name = 'crypto_candles';\n\nSELECT * FROM logging.TrackingTable;\nselect * from silver.crypto_candles2;\n\nselect DISTINCT trading_pair, COUNT()",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sql_dw_silver",
+				"poolName": "sql_dw_silver"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

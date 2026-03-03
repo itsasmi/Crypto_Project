@@ -1,0 +1,17 @@
+{
+	"name": "Crypto_Gold_Hourly",
+	"properties": {
+		"content": {
+			"query": "IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'gold')\nBEGIN\n    EXEC ('CREATE SCHEMA gold');\nEND;\n\nCREATE TABLE gold.crypto_candles_reporting\n(\n    \"Trading Pair\"     VARCHAR(20)  NOT NULL,\n    \"Hour Started At\"  DATETIME2    NOT NULL,   -- starting hour (UTC)\n    \"Trade Date On\"    DATE         NOT NULL,\n\n    \"Open Price\"       FLOAT        NOT NULL,\n    \"High Price\"       FLOAT        NOT NULL,\n    \"Low Price\"        FLOAT        NOT NULL,\n    \"Close Price\"      FLOAT        NOT NULL,\n    \"Volume\"           FLOAT        NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = HASH(\"Trading Pair\"),\n    CLUSTERED COLUMNSTORE INDEX\n);\n\nINSERT INTO gold.crypto_candles_reporting \nSELECT \n    trading_pair, \n    hour_ts,\n    trade_date,\n    MIN(open_price) AS open_price,\n    MAX(high_price) AS high_price,\n    MIN(low_price) AS low_price,\n    MAX(close_price) AS close_price,\n    SUM(volume) AS volume\nFROM \n(\n    SELECT \n        trading_pair,\n        \n        DATEADD(hour, DATEDIFF(hour, 0, open_timestamp), 0) AS hour_ts,\n        CAST(open_timestamp AS DATE) AS trade_date,\n\n        -- Hour open\n        FIRST_VALUE(open_price)\n            OVER(\n                PARTITION BY trading_pair,\n                            DATEADD(hour, DATEDIFF(hour, 0, open_timestamp), 0) \n                ORDER BY open_timestamp ASC\n            ) AS open_price,\n\n        -- Hour close\n        FIRST_VALUE(close_price)\n            OVER(\n                PARTITION BY trading_pair,\n                            DATEADD(hour, DATEDIFF(hour, 0, open_timestamp), 0)\n                ORDER BY open_timestamp DESC \n            ) AS close_price,\n\n        high_price,\n        low_price,\n        volume\n    \n    FROM silver.Crypto_Candles\n) t \nGROUP BY \n    trading_pair,\n    hour_ts,\n    trade_date;\n\nselect count(*) from gold.crypto_candles_reporting;\n\n-- row count \nSELECT trading_pair, trade_date, COUNT(*) AS hours_per_day \nFROM gold.crypto_hourly \nWHERE trading_pair = 'LINKUSDT'\nGROUP BY trading_pair, trade_date\nORDER BY trade_date, trading_pair; \n\nSELECT COUNT(hour_ts) FROM gold.crypto_hourly;\nselect * from gold.crypto_candles_reporting;\n\n-- no duplicate hours -> expected : zero rows\nSELECT\n    trading_pair,\n    hour_ts,\n    COUNT(*) AS row_count\nFROM gold.crypto_hourly\nGROUP BY trading_pair, hour_ts\nHAVING COUNT(*) > 1;\n\n-- OHLC correctness -> expected : zero rows\nSELECT *\nFROM gold.crypto_hourly\nWHERE\n    high_price < low_price\n    OR open_price > high_price\n    OR open_price < low_price\n    OR close_price > high_price\n    OR close_price < low_price;\n\nDROP TABLE gold.crypto_hourly;\n\nselect count(*),\"Trading Pair\" from gold.crypto_candles_reporting group by \"Trading Pair\"\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sql_dw_silver",
+				"poolName": "sql_dw_silver"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

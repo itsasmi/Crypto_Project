@@ -1,0 +1,17 @@
+{
+	"name": "Full_Refresh_Reporting_Table",
+	"properties": {
+		"content": {
+			"query": "CREATE PROCEDURE gold.sp_RebuildGoldHourly\nAS\nBEGIN\n    SET NOCOUNT ON;\n\n    INSERT INTO gold.crypto_candles_reporting\n    (\n        \"Trading Pair\",\n        \"Hour Started At\",\n        \"Trade Date On\",\n        \"Open Price\",\n        \"High Price\",\n        \"Low Price\",\n        \"Close Price\",\n        \"Volume\"\n    )\n    SELECT\n        d.trading_pair,\n        d.hour_ts,\n        d.trade_date,\n        MAX(CASE WHEN d.rn_open  = 1 THEN d.open_price  END) AS open_price,\n        MAX(d.high_price) AS high_price,\n        MIN(d.low_price) AS low_price,\n        MAX(CASE WHEN d.rn_close = 1 THEN d.close_price END)  AS close_price,\n        SUM(d.volume) AS volume\n    FROM\n    (\n        SELECT\n            sc.trading_pair,\n            DATEADD(hour, DATEDIFF(hour, 0, sc.open_timestamp), 0) AS hour_ts,\n            CAST(sc.open_timestamp AS date) AS trade_date,\n            sc.open_timestamp,\n            sc.open_price,\n            sc.close_price,\n            sc.high_price,\n            sc.low_price,\n            sc.volume,\n            ROW_NUMBER() OVER\n            (\n                PARTITION BY sc.trading_pair,\n                             DATEADD(hour, DATEDIFF(hour, 0, sc.open_timestamp), 0)\n                ORDER BY sc.open_timestamp ASC\n            ) AS rn_open,\n            ROW_NUMBER() OVER\n            (\n                PARTITION BY sc.trading_pair,\n                             DATEADD(hour, DATEDIFF(hour, 0, sc.open_timestamp), 0)\n                ORDER BY sc.open_timestamp DESC\n            ) AS rn_close\n        FROM silver.crypto_candles sc\n    ) d\n    GROUP BY\n        d.trading_pair,\n        d.hour_ts,\n        d.trade_date;\nEND;\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sql_dw_silver",
+				"poolName": "sql_dw_silver"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

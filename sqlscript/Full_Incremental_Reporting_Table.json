@@ -1,0 +1,17 @@
+{
+	"name": "Full_Incremental_Reporting_Table",
+	"properties": {
+		"content": {
+			"query": "CREATE PROCEDURE gold.sp_InsertNewGoldHours_Incremental\nAS\nBEGIN\n    SET NOCOUNT ON;\n\n    DECLARE @FromHour DATETIME2;\n    DECLARE @CurrentHour DATETIME2;\n\n    -- Last hour already present in Gold (if empty, start from very old date)\n    SELECT @FromHour = MAX(\"Hour Started At\")\n    FROM gold.crypto_candles_reporting;\n\n    SET @FromHour = ISNULL(@FromHour, CAST('1900-01-01T00:00:00' AS DATETIME2));\n\n    -- Do not load the current hour (still in progress)\n    SET @CurrentHour = DATEADD(hour, DATEDIFF(hour, 0, SYSUTCDATETIME()), 0);\n\n    INSERT INTO gold.crypto_candles_reporting\n    (\n        \"Trading Pair\",\n        \"Hour Started At\",\n        \"Trade Date On\",\n        \"Open Price\",\n        \"High Price\",\n        \"Low Price\",\n        \"Close Price\",\n        \"Volume\"\n    )\n    SELECT\n        trading_pair,\n        hour_ts,\n        trade_date,\n        MAX(open_price)  AS open_price,\n        MAX(high_price)  AS high_price,\n        MIN(low_price)   AS low_price,\n        MAX(close_price) AS close_price,\n        SUM(volume)      AS volume\n    FROM\n    (\n        SELECT\n            trading_pair,\n            DATEADD(hour, DATEDIFF(hour, 0, open_timestamp), 0) AS hour_ts,\n            CAST(open_timestamp AS DATE) AS trade_date,\n\n            FIRST_VALUE(open_price) OVER\n            (\n                PARTITION BY trading_pair,\n                             DATEADD(hour, DATEDIFF(hour, 0, open_timestamp), 0)\n                ORDER BY open_timestamp ASC\n            ) AS open_price,\n\n            FIRST_VALUE(close_price) OVER\n            (\n                PARTITION BY trading_pair,\n                             DATEADD(hour, DATEDIFF(hour, 0, open_timestamp), 0)\n                ORDER BY open_timestamp DESC\n            ) AS close_price,\n\n            high_price,\n            low_price,\n            volume\n        FROM silver.crypto_candles\n        WHERE open_timestamp >= @FromHour      -- only new minutes since last loaded hour\n          AND open_timestamp <  @CurrentHour   -- only completed hours\n    ) t\n    GROUP BY\n        trading_pair,\n        hour_ts,\n        trade_date\n    HAVING NOT EXISTS\n    (\n        SELECT 1\n        FROM gold.crypto_candles_reporting g\n        WHERE g.\"Trading Pair\"    = trading_pair\n          AND g.\"Hour Started At\" = hour_ts\n          AND g.\"Trade Date On\"   = trade_date\n    );\nEND;\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sql_dw_silver",
+				"poolName": "sql_dw_silver"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

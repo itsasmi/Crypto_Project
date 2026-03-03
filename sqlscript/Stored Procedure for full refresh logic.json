@@ -1,0 +1,17 @@
+{
+	"name": "Stored Procedure for full refresh logic",
+	"properties": {
+		"content": {
+			"query": "CREATE PROCEDURE logging.SP_DeleteCryptoDataForRefresh\n    @trading_pair VARCHAR(100)\nAS\nBEGIN\n    SET NOCOUNT ON;\n\n    BEGIN\n\n        DELETE FROM gold.crypto_candles_reporting\n        WHERE [Trading Pair] = @trading_pair;\n\n        DELETE FROM silver.crypto_candles\n        WHERE trading_pair = @trading_pair;\n\n    END \nEND;\nGO\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sql_dw_silver",
+				"poolName": "sql_dw_silver"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

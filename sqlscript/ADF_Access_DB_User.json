@@ -1,0 +1,17 @@
+{
+	"name": "ADF_Access_DB_User",
+	"properties": {
+		"content": {
+			"query": "CREATE USER [adf-crypto-analyst] FROM EXTERNAL PROVIDER;\n\nALTER ROLE db_owner ADD MEMBER [adf-crypto-analyst];\nGo\n\nEXEC sp_addrolemember 'db_owner', 'adf-crypto-analyst';\n\nSELECT * FROM sys.database_principals WHERE name = 'adf-crypto-analyst';\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "sql_dw_silver",
+				"poolName": "sql_dw_silver"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
