@@ -1,0 +1,182 @@
+{
+	"name": "child_pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "MonthList",
+				"type": "Script",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LS_Synapse_DedicatedPool_Dev",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "DECLARE @latest_time_str VARCHAR(50) = '@{pipeline().parameters.latest_time}';\nDECLARE @current_time_str VARCHAR(50) = '@{formatDateTime(utcnow(), 'yyyy-MM-dd HH:mm:ss')}';\n\nDECLARE @start_year INT = CAST(LEFT(@latest_time_str, 4) AS INT);\nDECLARE @start_month INT = CAST(SUBSTRING(@latest_time_str, 6, 2) AS INT);\nDECLARE @end_year INT = CAST(LEFT(@current_time_str, 4) AS INT);\nDECLARE @end_month INT = CAST(SUBSTRING(@current_time_str, 6, 2) AS INT);\n\nDECLARE @total_months INT = (@end_year - @start_year) * 12 + (@end_month - @start_month) + 1;\n\n;WITH Numbers AS (\n    SELECT 0 AS n\n    UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4\n    UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8\n    UNION ALL SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12\n),\nMonthCalculations AS (\n    SELECT \n        n,\n        (@start_year * 12 + @start_month - 1 + n) / 12 AS calc_year,\n        ((@start_year * 12 + @start_month - 1 + n) % 12) + 1 AS calc_month\n    FROM Numbers\n    WHERE n < @total_months\n)\nSELECT \n    CAST(calc_year AS VARCHAR(4)) AS year, \n    RIGHT('0' + CAST(calc_month AS VARCHAR(2)), 2) AS month\nFROM MonthCalculations\nORDER BY calc_year, calc_month;\n",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "innerloop",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "MonthList",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('MonthList').output.resultSets[0].rows",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "dataflow_full_complete",
+							"type": "ExecuteDataFlow",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "dataflow_full_complete",
+									"type": "DataFlowReference",
+									"parameters": {
+										"trading_pair": {
+											"value": "@pipeline().parameters.trading_pair",
+											"type": "Expression"
+										},
+										"p_year": {
+											"value": "@item().year",
+											"type": "Expression"
+										},
+										"p_month": {
+											"value": "@item().month",
+											"type": "Expression"
+										},
+										"latest_time": {
+											"value": "@pipeline().parameters.latest_time",
+											"type": "Expression"
+										},
+										"lp_day": {
+											"value": "@pipeline().parameters.lp_day",
+											"type": "Expression"
+										},
+										"lp_hour": {
+											"value": "@pipeline().parameters.lp_hour",
+											"type": "Expression"
+										},
+										"lp_minute": {
+											"value": "@pipeline().parameters.lp_minute",
+											"type": "Expression"
+										},
+										"lp_second": {
+											"value": "@pipeline().parameters.lp_second",
+											"type": "Expression"
+										}
+									}
+								},
+								"staging": {
+									"linkedService": {
+										"referenceName": "LS_ADLS_CryptoRawStorage_Dev",
+										"type": "LinkedServiceReference"
+									},
+									"folderPath": "staging/dataflow"
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine"
+							}
+						},
+						{
+							"name": "Stored procedure1",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "dataflow_full_complete",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[logging].[sp_UpdateSilverTracking]",
+								"storedProcedureParameters": {
+									"trading_pair": {
+										"value": {
+											"value": "@pipeline().parameters.trading_pair",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_Synapse_DedicatedPool_Dev",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"trading_pair": {
+				"type": "string"
+			},
+			"latest_time": {
+				"type": "string"
+			},
+			"lp_day": {
+				"type": "string"
+			},
+			"lp_hour": {
+				"type": "string"
+			},
+			"lp_minute": {
+				"type": "string"
+			},
+			"lp_second": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-18T13:38:28Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

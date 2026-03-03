@@ -1,0 +1,111 @@
+{
+	"name": "DF_Incremental_RawCrypto_Silver_v2",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_RawCrypto_CSV",
+						"type": "DatasetReference"
+					},
+					"name": "AdlsRaw"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_Synapse_CryptoSilver_Table",
+						"type": "DatasetReference"
+					},
+					"name": "SinkSynapse"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumns",
+					"description": "derived the column base_asset, quote_asset and trade_date"
+				},
+				{
+					"name": "AlterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          trading_pair as string,",
+				"          open_time as long,",
+				"          open_price as double,",
+				"          high_price as double,",
+				"          low_price as double,",
+				"          close_price as double,",
+				"          volume as double,",
+				"          close_time as long,",
+				"          quote_asset_volume as double,",
+				"          number_of_trades as integer,",
+				"          taker_buy_base_asset_volume as double,",
+				"          taker_buy_quote_asset_volume as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     enableCdc: true,",
+				"     mode: 'read',",
+				"     skipInitialLoad: true,",
+				"     wildcardPaths:['binance/*/*/*.csv']) ~> AdlsRaw",
+				"AdlsRaw derive(quote_asset = \"USDT\",",
+				"          base_asset = substring(trading_pair, 0, length(trading_pair) - 4),",
+				"          open_time = toTimestamp(toLong(substring(toString(open_time), 1, 10)) * 1000),",
+				"          close_time = toTimestamp(toLong(substring(toString(close_time), 1, 10)) * 1000),",
+				"          trade_date = toDate(toTimestamp(toLong(substring(toString(open_time), 1, 10)) * 1000))) ~> derivedColumns",
+				"derivedColumns alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          trading_pair as string,",
+				"          base_asset as string,",
+				"          quote_asset as string,",
+				"          open_timestamp as timestamp,",
+				"          close_timestamp as timestamp,",
+				"          trade_date as date,",
+				"          open_price as double,",
+				"          high_price as double,",
+				"          low_price as double,",
+				"          close_price as double,",
+				"          volume as double,",
+				"          quote_volume as double,",
+				"          number_of_trades as integer,",
+				"          taker_buy_base_volume as double,",
+				"          taker_buy_quote_volume as double",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['trading_pair','close_timestamp'],",
+				"     format: 'table',",
+				"     staged: true,",
+				"     allowCopyCommand: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          trading_pair,",
+				"          base_asset,",
+				"          quote_asset,",
+				"          open_timestamp = open_time,",
+				"          close_timestamp = close_time,",
+				"          trade_date,",
+				"          open_price,",
+				"          high_price,",
+				"          low_price,",
+				"          close_price,",
+				"          volume,",
+				"          quote_volume = quote_asset_volume,",
+				"          number_of_trades,",
+				"          taker_buy_base_volume = taker_buy_base_asset_volume,",
+				"          taker_buy_quote_volume = taker_buy_quote_asset_volume",
+				"     )) ~> SinkSynapse"
+			]
+		}
+	}
+}

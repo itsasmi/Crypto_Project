@@ -1,0 +1,128 @@
+{
+	"name": "PL_FullLoad_Using_CDC",
+	"properties": {
+		"activities": [
+			{
+				"name": "DF_Incremental_RawCrypto_Silver_2",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Incremental_RawCrypto_Silver_v2",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "LS_ADLS_CryptoRawStorage_Dev",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "staging/dataflow"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"continuationSettings": {
+						"customizedCheckpointKey": "c08dfd9d-1b85-4d2f-9488-3c7a59dd7b00"
+					}
+				}
+			},
+			{
+				"name": "LK_Get_Trading_Pair",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "DF_Incremental_RawCrypto_Silver_2",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT DISTINCT trading_pair\nFROM silver.crypto_candles2;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Synapse_CryptoSilver_Table2",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "LK_Get_Trading_Pair",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('LK_Get_Trading_Pair').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "SP_UpdateTracking",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[logging].[SP_UpdateTracking]",
+								"storedProcedureParameters": {
+									"trading_pair": {
+										"value": {
+											"value": "@item().trading_pair\r\n",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_Synapse_DedicatedPool_Dev",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-02-23T11:37:42Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

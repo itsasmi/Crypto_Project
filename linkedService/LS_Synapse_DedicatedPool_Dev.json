@@ -1,0 +1,15 @@
+{
+	"name": "LS_Synapse_DedicatedPool_Dev",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"server": "syn-crypto-analyst.sql.azuresynapse.net",
+			"database": "sql_dw_silver",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}

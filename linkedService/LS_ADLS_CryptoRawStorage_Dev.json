@@ -1,0 +1,11 @@
+{
+	"name": "LS_ADLS_CryptoRawStorage_Dev",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://storagecryptoanalysis.dfs.core.windows.net/"
+		}
+	}
+}

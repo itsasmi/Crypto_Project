@@ -1,0 +1,14 @@
+{
+	"name": "adf-crypto-analyst",
+	"properties": {
+		"globalConfigurations": {
+			"PipelineBillingEnabled": "true"
+		}
+	},
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "746b58a8-73b7-4232-87a5-94b0fcbfed61",
+		"tenantId": "3ae6c27b-da56-43c9-bf2c-230351b06d8a"
+	}
+}

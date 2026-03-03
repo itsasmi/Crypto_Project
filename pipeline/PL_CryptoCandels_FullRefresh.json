@@ -1,0 +1,124 @@
+{
+	"name": "PL_CryptoCandels_FullRefresh",
+	"properties": {
+		"activities": [
+			{
+				"name": "SP_DeletePairData",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[logging].[SP_DeleteCryptoDataForRefresh]",
+					"storedProcedureParameters": {
+						"trading_pair": {
+							"value": {
+								"value": "@pipeline().parameters.trading_pair",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_Synapse_DedicatedPool_Dev",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "DF_FullRefresh_Load",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "SP_DeletePairData",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_FullRefresh_RawCrypto_Silver",
+						"type": "DataFlowReference",
+						"parameters": {
+							"trading_pair": {
+								"value": "@pipeline().parameters.trading_pair",
+								"type": "Expression"
+							}
+						}
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "LS_ADLS_CryptoRawStorage_Dev",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "staging/dataflow"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "SP_UpdateTracking",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "DF_FullRefresh_Load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[logging].[SP_UpdateTracking]",
+					"storedProcedureParameters": {
+						"trading_pair": {
+							"value": {
+								"value": "@pipeline().parameters.trading_pair",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_Synapse_DedicatedPool_Dev",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"trading_pair": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-23T04:34:01Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

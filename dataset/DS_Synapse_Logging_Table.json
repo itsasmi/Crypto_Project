@@ -1,0 +1,17 @@
+{
+	"name": "DS_Synapse_Logging_Table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_Synapse_DedicatedPool_Dev",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "logging",
+			"table": "TrackingTable"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

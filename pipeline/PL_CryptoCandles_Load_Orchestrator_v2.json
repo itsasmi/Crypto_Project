@@ -1,0 +1,331 @@
+{
+	"name": "PL_CryptoCandles_Load_Orchestrator_v2",
+	"properties": {
+		"activities": [
+			{
+				"name": "LK_Get_FullRefresh_Rows",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT TOP 1 Full_refresh\nFROM logging.TrackingTable\nWHERE Table_Name = 'crypto_candles'\nAND Full_refresh = 1",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Synapse_Logging_Table",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Is_FullRefresh",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "LK_Get_FullRefresh_Rows",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greater(activity('LK_Get_FullRefresh_Rows').output.count, 0)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "DF_Incremental_RawCrypto_Silver_v2",
+							"type": "ExecuteDataFlow",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "DF_Incremental_RawCrypto_Silver_v2",
+									"type": "DataFlowReference"
+								},
+								"staging": {
+									"linkedService": {
+										"referenceName": "LS_ADLS_CryptoRawStorage_Dev",
+										"type": "LinkedServiceReference"
+									},
+									"folderPath": "staging/dataflow"
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine",
+								"continuationSettings": {
+									"customizedCheckpointKey": "1af9aa10-220e-47fd-bc82-664e7a78e06e"
+								}
+							}
+						},
+						{
+							"name": "SP_Reporting_Incremental",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "DF_Incremental_RawCrypto_Silver_v2",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[gold].[sp_InsertNewGoldHours_Incremental]"
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_Synapse_DedicatedPool_Dev",
+								"type": "LinkedServiceReference"
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Truncate_Silver_Table",
+							"type": "Script",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "LS_Synapse_DedicatedPool_Dev",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": "TRUNCATE TABLE silver.crypto_candles;"
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "DF_FullRefresh_RawCrypto_Silver_v2",
+							"type": "ExecuteDataFlow",
+							"dependsOn": [
+								{
+									"activity": "Truncate_Silver_Table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataflow": {
+									"referenceName": "DF_FullRefresh_RawCrypto_Silver_v2",
+									"type": "DataFlowReference"
+								},
+								"staging": {
+									"linkedService": {
+										"referenceName": "LS_ADLS_CryptoRawStorage_Dev",
+										"type": "LinkedServiceReference"
+									},
+									"folderPath": "staging/dataflow"
+								},
+								"compute": {
+									"coreCount": 8,
+									"computeType": "General"
+								},
+								"traceLevel": "Fine",
+								"continuationSettings": {
+									"customizedCheckpointKey": "7618653d-a1d4-4b5e-a84e-6cf955994ff7"
+								}
+							}
+						},
+						{
+							"name": "Truncate_Gold_Table",
+							"type": "Script",
+							"dependsOn": [
+								{
+									"activity": "DF_FullRefresh_RawCrypto_Silver_v2",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"linkedServiceName": {
+								"referenceName": "LS_Synapse_DedicatedPool_Dev",
+								"type": "LinkedServiceReference"
+							},
+							"typeProperties": {
+								"scripts": [
+									{
+										"type": "Query",
+										"text": "TRUNCATE TABLE gold.crypto_candles_reporting;"
+									}
+								],
+								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "SP_Reporting_Table",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Truncate_Gold_Table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[gold].[sp_RebuildGoldHourly]"
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_Synapse_DedicatedPool_Dev",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "LK_Get_TradingPair",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Is_FullRefresh",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT DISTINCT trading_pair\nFROM silver.crypto_candles;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_Synapse_CryptoSilver_Table",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "LK_Get_TradingPair",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('LK_Get_TradingPair').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "SP_UpdateTrackingTable",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[logging].[SP_UpdateTracking]",
+								"storedProcedureParameters": {
+									"trading_pair": {
+										"value": {
+											"value": "@item().trading_pair",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "LS_Synapse_DedicatedPool_Dev",
+								"type": "LinkedServiceReference"
+							}
+						}
+					]
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-02-27T12:30:05Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

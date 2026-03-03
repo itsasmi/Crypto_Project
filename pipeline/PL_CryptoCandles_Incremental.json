@@ -1,0 +1,85 @@
+{
+	"name": "PL_CryptoCandles_Incremental",
+	"properties": {
+		"activities": [
+			{
+				"name": "DF_Incremental_RawCrypto_Silver",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Incremental_RawCrypto_Silver",
+						"type": "DataFlowReference"
+					},
+					"staging": {
+						"linkedService": {
+							"referenceName": "LS_ADLS_CryptoRawStorage_Dev",
+							"type": "LinkedServiceReference"
+						},
+						"folderPath": "staging/dataflow"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"continuationSettings": {
+						"customizedCheckpointKey": "23b2e526-2c6b-4cda-ae40-337f152d06c5"
+					}
+				}
+			},
+			{
+				"name": "SP_UpdateTrackingTable",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "DF_Incremental_RawCrypto_Silver",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[logging].[SP_UpdateTracking]",
+					"storedProcedureParameters": {
+						"trading_pair": {
+							"value": {
+								"value": "@pipeline().parameters.trading_pair",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_Synapse_DedicatedPool_Dev",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"trading_pair": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-02-23T11:13:42Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

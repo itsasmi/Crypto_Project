@@ -1,0 +1,100 @@
+{
+	"name": "Pipeline_Full_Complete",
+	"properties": {
+		"activities": [
+			{
+				"name": "outer_loop",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Look_Up_complete",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Look_Up_complete').output.value\n",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "child_pipeline",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "child_pipeline",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"trading_pair": {
+										"value": "@item().trading_pair",
+										"type": "Expression"
+									},
+									"latest_time": {
+										"value": "@item().latest_time",
+										"type": "Expression"
+									},
+									"lp_day": {
+										"value": "@item().lp_day",
+										"type": "Expression"
+									},
+									"lp_hour": {
+										"value": "@item().lp_hour",
+										"type": "Expression"
+									},
+									"lp_minute": {
+										"value": "@item().lp_minute",
+										"type": "Expression"
+									},
+									"lp_second": {
+										"value": "@item().lp_second",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Look_Up_complete",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"sqlReaderQuery": "SELECT \n    trading_pair,\n    Last_Processed_Timestamp AS latest_time,\n    DAY(Last_Processed_Timestamp)               AS lp_day,\n    DATEPART(HOUR, Last_Processed_Timestamp)    AS lp_hour,\n    DATEPART(MINUTE, Last_Processed_Timestamp)  AS lp_minute,\n    DATEPART(SECOND, Last_Processed_Timestamp)  AS lp_second\nFROM logging.TrackingTable\nWHERE Table_Name = 'crypto_candles'\nORDER BY trading_pair DESC",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "ds_synapse_silver_crypto",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-02-18T13:38:29Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

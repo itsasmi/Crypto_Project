@@ -1,0 +1,89 @@
+{
+	"name": "DS_Synapse_CryptoSilver_Table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_Synapse_DedicatedPool_Dev",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "trading_pair",
+				"type": "varchar"
+			},
+			{
+				"name": "base_asset",
+				"type": "varchar"
+			},
+			{
+				"name": "quote_asset",
+				"type": "varchar"
+			},
+			{
+				"name": "open_timestamp",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "close_timestamp",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "trade_date",
+				"type": "date"
+			},
+			{
+				"name": "open_price",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "high_price",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "low_price",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "close_price",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "volume",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "quote_volume",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "number_of_trades",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "taker_buy_base_volume",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "taker_buy_quote_volume",
+				"type": "float",
+				"precision": 15
+			}
+		],
+		"typeProperties": {
+			"schema": "silver",
+			"table": "crypto_candles"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
