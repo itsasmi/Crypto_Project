@@ -1,0 +1,74 @@
+table data
+	lineageTag: b76d793d-0c3f-489b-a1f3-e6548d0ce2bb
+
+	column 'Sales Person'
+		dataType: string
+		lineageTag: 3b159057-456b-4548-a4b6-eeeff1124afb
+		summarizeBy: none
+		sourceColumn: Sales Person
+
+		annotation SummarizationSetBy = Automatic
+
+	column Country
+		dataType: string
+		lineageTag: 92f1fc19-a078-4449-b775-9d52a43971d1
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column Product
+		dataType: string
+		lineageTag: 95ce0ec3-ed4e-4ca0-8c06-6a99e0ff966b
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 5bc3fc0d-d839-4904-be0a-5cc8a2b14b65
+		summarizeBy: none
+		sourceColumn: Date
+
+		variation Variation
+			isDefault
+			relationship: 206bca42-08d0-41b1-9c09-18c47955cfb1
+			defaultHierarchy: LocalDateTable_8f97d4a4-1662-472c-8f49-4de571201914.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Amount
+		dataType: int64
+		formatString: 0
+		lineageTag: 64735b63-a6a5-40d1-b8fc-c8ce7224f752
+		summarizeBy: sum
+		sourceColumn: Amount
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Boxes Shipped'
+		dataType: int64
+		formatString: 0
+		lineageTag: c69d9e44-4759-416f-ab92-e544d48afe1b
+		summarizeBy: sum
+		sourceColumn: Boxes Shipped
+
+		annotation SummarizationSetBy = Automatic
+
+	partition data = m
+		mode: import
+		source =
+				let
+				    Source = Excel.Workbook(File.Contents("C:\Users\Sayam Parejiya\Downloads\sample-data-10mins.xlsx"), null, true),
+				    data_Sheet = Source{[Item="data",Kind="Sheet"]}[Data],
+				    #"Promoted Headers" = Table.PromoteHeaders(data_Sheet, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Sales Person", type text}, {"Country", type text}, {"Product", type text}, {"Date", type date}, {"Amount", Int64.Type}, {"Boxes Shipped", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+

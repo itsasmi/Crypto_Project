@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "crypto_data_analytics_6 (2)"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "2d416cd5-a7b8-41bb-ba50-4574003a6b38"
+  }
+}

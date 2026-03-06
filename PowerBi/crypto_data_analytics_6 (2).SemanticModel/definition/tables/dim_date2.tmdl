@@ -1,0 +1,233 @@
+table dim_date2
+	isHidden
+	lineageTag: d917d2f2-8262-4275-bf42-c0c37e93f553
+
+	measure 'Debug – Date Key' =
+			
+			SELECTEDVALUE(dim_date2[date_key])
+		formatString: General Date
+		isHidden
+		lineageTag: 16fb6f8a-15d3-4ee5-a53d-17efb9138f08
+
+	column Date
+		isHidden
+		formatString: General Date
+		lineageTag: e223abdb-f0cd-41c2-96fc-8da712029b56
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		variation Variation
+			isDefault
+			relationship: f4465b7f-cf29-42f9-9ee8-08333ec28c8c
+			defaultHierarchy: LocalDateTable_7c07528f-b5b3-4169-b6df-d8e819a53ca5.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		isHidden
+		formatString: 0
+		lineageTag: c715519d-5c19-465a-b93d-6df6f7029836
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_key
+		isHidden
+		formatString: General Date
+		lineageTag: 861864c3-fbae-4363-9b67-57b8e4ee3602
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [date_key]
+
+		variation Variation
+			isDefault
+			relationship: dff53a41-d25d-441c-be22-5c68cdb4393c
+			defaultHierarchy: LocalDateTable_adf1e60f-9311-4531-a501-16a9468dd5ed.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column year
+		isHidden
+		formatString: 0
+		lineageTag: e33e6e6e-76bf-4991-b045-f01587950123
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_number
+		isHidden
+		formatString: 0
+		lineageTag: 957a44ec-89e5-4875-b6bf-33034db04f11
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [month_number]
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_name
+		isHidden
+		lineageTag: e4c51a45-3adb-40d5-8b9d-65b400514a97
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [month_name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_month
+		isHidden
+		lineageTag: 89addc35-5291-40c0-b5c4-b51d98b545e2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [year_month]
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarter
+		isHidden
+		lineageTag: 8b0b3f14-9927-4ea3-8d85-7d78325f15e3
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [quarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column week_of_year
+		isHidden
+		formatString: 0
+		lineageTag: 82a58583-cbca-4bbd-b099-a20f588eccf2
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [week_of_year]
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_of_week
+		isHidden
+		formatString: 0
+		lineageTag: ba4ee8ff-818b-447e-b2da-45e0ec155b37
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [day_of_week]
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_name
+		isHidden
+		lineageTag: c9d051b1-fc96-4259-947e-eb87191cb55c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [day_name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_weekend
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 8f67069c-5425-42a3-9dcf-ab1655bb8ea0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [is_weekend]
+
+		annotation SummarizationSetBy = Automatic
+
+	column hour_of_day
+		isHidden
+		formatString: 0
+		lineageTag: b4ff6571-f3ef-4414-8073-70404b9507f8
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [hour_of_day]
+
+		annotation SummarizationSetBy = Automatic
+
+	column hour_label
+		isHidden
+		lineageTag: 26fa937a-1338-44f6-9d65-6cf22c7e68c9
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [hour_label]
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_hour_ts
+		isHidden
+		formatString: General Date
+		lineageTag: 2732e755-98a5-4841-aee4-2848ebc3eae1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [date_hour_ts]
+
+		variation Variation
+			isDefault
+			relationship: 7239818c-8c62-4f87-8002-f15f6a972fea
+			defaultHierarchy: LocalDateTable_b147f382-f22a-4cf7-8de8-a30e4dd8e46e.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy Calendar_hour_hierarchy
+		isHidden
+		lineageTag: a95065bc-c7a7-4f9c-a58f-70d9a1daf529
+
+		level year
+			lineageTag: 476b5e9a-ca8c-4ce8-ada2-9db059acf793
+			column: year
+
+		level quarter
+			lineageTag: c4658245-49a7-4a7a-9daf-6af910c66aa1
+			column: quarter
+
+		level month_name
+			lineageTag: eafa6032-401c-419c-a563-7ef78629c09f
+			column: month_name
+
+		level date_key
+			lineageTag: fc9b7f70-927b-4817-92ac-292d997cefb2
+			column: date_key
+
+		level hour_of_day
+			lineageTag: 68493e35-9350-4c2a-b031-4311eea407b3
+			column: hour_of_day
+
+	partition dim_date2 = calculated
+		mode: import
+		source = ```
+				
+				VAR StartDate = DATE(2021, 1, 1)
+				VAR EndDate   = DATE(2026, 12, 31)
+				RETURN
+				ADDCOLUMNS (
+				    GENERATE (
+				        CALENDAR (StartDate, EndDate),
+				        GENERATESERIES (0, 23, 1)
+				    ),
+				
+				    /* Date fields */
+				    "date_key", [Date],
+				    "year", YEAR([Date]),
+				    "month_number", MONTH([Date]),
+				    "month_name", FORMAT([Date], "MMM"),
+				    "year_month", FORMAT([Date], "YYYY-MM"),
+				    "quarter", "Q" & FORMAT([Date], "Q"),
+				
+				    "week_of_year", WEEKNUM([Date]),
+				    "day_of_week", WEEKDAY([Date], 2),
+				    "day_name", FORMAT([Date], "DDD"),
+				    "is_weekend", WEEKDAY([Date], 2) > 5,
+				
+				    /* Hour fields */
+				    "hour_of_day", [Value],
+				    "hour_label", FORMAT(TIME([Value], 0, 0), "HH:00"),
+				
+				    /* Combined datetime (optional but useful) */
+				    "date_hour_ts", [Date] + TIME([Value], 0, 0)
+				)
+				
+				```
+
+	annotation PBI_Id = f4f74970b1cb4f2aa090de75502fc853
+

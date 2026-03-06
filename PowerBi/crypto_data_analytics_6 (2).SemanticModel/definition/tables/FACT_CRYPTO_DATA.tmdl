@@ -1,0 +1,1044 @@
+table FACT_CRYPTO_DATA
+	lineageTag: da562e1e-e1c6-49f9-90c4-81c80022924e
+
+	measure 'Rolling Avg Volume (20 Days)' =
+			
+			VAR CurrentDate = MAX(DIM_CALENDAR[Date])
+			RETURN
+			AVERAGEX(
+			    FILTER(
+			        ALL(DIM_CALENDAR),
+			        DIM_CALENDAR[Date] <= CurrentDate &&
+			        DIM_CALENDAR[Date] > CurrentDate - 20
+			    ),
+			    CALCULATE(SUM('FACT_CRYPTO_DATA'[Volume]))
+			)
+		lineageTag: 820c19c1-db0e-45c1-b07e-0ad2e3552e61
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Beta to BTC (30 Days)' =
+			
+			VAR AssetAvg =
+			    AVERAGEX(
+			        DATESINPERIOD(
+			            DIM_CALENDAR[Date],
+			            MAX(DIM_CALENDAR[Date]),
+			            -30,
+			            DAY
+			        ),
+			        [Daily Return (%)]
+			    )
+			
+			VAR BTCAvg =
+			    AVERAGEX(
+			        DATESINPERIOD(
+			            DIM_CALENDAR[Date],
+			            MAX(DIM_CALENDAR[Date]),
+			            -30,
+			            DAY
+			        ),
+			        [BTC Daily Return]
+			    )
+			
+			VAR CovarValue =
+			    AVERAGEX(
+			        DATESINPERIOD(
+			            DIM_CALENDAR[Date],
+			            MAX(DIM_CALENDAR[Date]),
+			            -30,
+			            DAY
+			        ),
+			        ([Daily Return (%)] - AssetAvg) *
+			        ([BTC Daily Return] - BTCAvg)
+			    )
+			
+			VAR BTCVariance =
+			    VAR BTCStd =
+			        STDEVX.P(
+			            DATESINPERIOD(
+			                DIM_CALENDAR[Date],
+			                MAX(DIM_CALENDAR[Date]),
+			                -30,
+			                DAY
+			            ),
+			            [BTC Daily Return]
+			        )
+			    RETURN BTCStd * BTCStd
+			
+			RETURN
+			DIVIDE(
+			    CovarValue,
+			    BTCVariance
+			)
+		lineageTag: fa6ee011-2da0-4377-a316-ab0ae739aeb6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'BTC Daily Return' =
+			
+			CALCULATE(
+			    [Daily Return (%)],
+			    ALL('FACT_CRYPTO_DATA'[Trading Pair]),
+			    'FACT_CRYPTO_DATA'[Trading Pair] = "BTCUSDT"
+			)
+		lineageTag: 5ee6d312-eae1-444d-883f-5f5cf91cfe35
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Daily Close' =
+			
+			VAR LastHour =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Hour Started At])
+			    )
+			
+			RETURN
+			CALCULATE(
+			    MAX('FACT_CRYPTO_DATA'[Close Price]),
+			    'FACT_CRYPTO_DATA'[Hour Started At] = LastHour
+			)
+		lineageTag: 444b2bfa-537f-4afe-9389-65308d7e4e28
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Daily High' = MAX('FACT_CRYPTO_DATA'[High Price])
+		lineageTag: 90350d67-aed8-4d5b-b170-1b26016b227b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Daily Log Return' = ```
+			
+			LOG(1 + [Daily Return (%)])
+			
+			```
+		lineageTag: 55e75c43-32fb-40c4-a1f1-63247f276ae3
+
+	measure 'Daily Low' =
+			
+			MIN('FACT_CRYPTO_DATA'[Low Price])
+		lineageTag: f56d704d-204a-437a-9382-ea0e23106a93
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Daily Open' = ```
+			
+			VAR FirstHour = 
+			    CALCULATE(
+			        MIN(FACT_CRYPTO_DATA[Hour Started At])    
+			    )
+			RETURN
+			CALCULATE(
+			    MAX('FACT_CRYPTO_DATA'[Open Price]),
+			    FACT_CRYPTO_DATA[Hour Started At] = FirstHour
+			)
+			```
+		lineageTag: d49dbdf8-ce15-4e83-9aa1-bacc1766e068
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Daily Return (%)' = ```
+			
+			VAR CurrentDate =
+			    SELECTEDVALUE(DIM_CALENDAR[Date])
+			
+			VAR FirstHour =
+			    CALCULATE(
+			        MIN('FACT_CRYPTO_DATA'[Hour Started At]),
+			        'FACT_CRYPTO_DATA'[Trade Date On] = CurrentDate
+			    )
+			
+			VAR LastHour =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Hour Started At]),
+			        'FACT_CRYPTO_DATA'[Trade Date On] = CurrentDate
+			    )
+			
+			VAR OpenPrice =
+			    CALCULATE(
+			        AVERAGE('FACT_CRYPTO_DATA'[Open Price]),
+			        'FACT_CRYPTO_DATA'[Hour Started At] = FirstHour
+			    )
+			
+			VAR ClosePrice =
+			    CALCULATE(
+			        AVERAGE('FACT_CRYPTO_DATA'[Close Price]),
+			        'FACT_CRYPTO_DATA'[Hour Started At] = LastHour
+			    )
+			
+			RETURN
+			DIVIDE(ClosePrice - OpenPrice, OpenPrice)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: b01bde8a-8cec-4f69-9b27-8ada6c4f1f7e
+
+	measure 'Daily Volume' =
+			
+			SUM('FACT_CRYPTO_DATA'[Volume])
+		lineageTag: bcfc9027-a82c-4b29-89ec-96f92851eced
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Rolling Max (30 Days)' =
+			
+			MAXX(
+			    DATESINPERIOD(
+			        DIM_CALENDAR[Date],
+			        MAX(DIM_CALENDAR[Date]),
+			        -30,
+			        DAY
+			    ),
+			    [Daily Close]
+			)
+		lineageTag: c2821347-8034-447a-8122-4126eb052011
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Drawdown Severity (%)' = ```
+			
+			DIVIDE(
+			    [Daily Close] - [Rolling Max (30 Days)],
+			    [Rolling Max (30 Days)]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 9b2b80a2-62e3-4414-b978-2b364aed86cb
+
+	measure 'Previous Day High' =
+			
+			CALCULATE(
+			    [Daily High],
+			    DATEADD(DIM_CALENDAR[Date], -1, DAY)
+			)
+		lineageTag: e32c840b-6acc-46e3-9687-7ed84205f17d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Is Higher High' =
+			
+			IF(
+			    [Daily High] > [Previous Day High],
+			    1,
+			    0
+			)
+		formatString: 0
+		lineageTag: 2f812076-94ae-4a68-afcb-30d17c95435b
+
+	measure 'Previous Day Low' =
+			
+			CALCULATE(
+			    [Daily Low],
+			    DATEADD(DIM_CALENDAR[Date], -1, DAY)
+			)
+		lineageTag: 9e0c8176-e0de-4c22-940d-9a5e4ffd5279
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Is Lower Low' =
+			
+			IF(
+			    [Daily Low] < [Previous Day Low],
+			    1,
+			    0
+			)
+		formatString: 0
+		lineageTag: ed81287f-107d-4c3a-9701-a777e1eded79
+
+	measure 'Hourly Close' =
+			
+			AVERAGE('FACT_CRYPTO_DATA'[Close Price])
+		lineageTag: 785cf2ae-5d43-4c28-a610-0b4bfce9e72e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Hourly Log Return' =
+			
+			VAR CurrentHour =
+			    MAX('FACT_CRYPTO_DATA'[Hour Started At])
+			
+			VAR PrevClose =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Close Price]),
+			        FILTER(
+			            ALL('FACT_CRYPTO_DATA'),
+			            'FACT_CRYPTO_DATA'[Hour Started At] =
+			                CurrentHour - TIME(1,0,0)
+			                && 'FACT_CRYPTO_DATA'[Trading Pair] =
+			                   SELECTEDVALUE('FACT_CRYPTO_DATA'[Trading Pair])
+			        )
+			    )
+			
+			VAR CurrentClose =
+			    MAX('FACT_CRYPTO_DATA'[Close Price])
+			
+			RETURN
+			IF(
+			    NOT ISBLANK(PrevClose),
+			    LOG(CurrentClose / PrevClose)
+			)
+		lineageTag: 94e7cefb-26f0-446a-9a54-0c4fbb5b32fd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Hourly Open' = ```
+			
+			AVERAGE('FACT_CRYPTO_DATA'[Open Price])
+			
+			```
+		lineageTag: 3e90bbe8-9800-4a40-8610-39a78834649e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Hourly Return' =
+			
+			DIVIDE(
+			    [Hourly Close] - [Hourly Open],
+			    [Hourly Open]
+			)
+		lineageTag: 33196bcb-9e45-4f9a-b55d-190b4872b941
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Hourly Return (%)' =
+			
+			DIVIDE(
+			    AVERAGE('FACT_CRYPTO_DATA'[Close Price]) -
+			    AVERAGE('FACT_CRYPTO_DATA'[Open Price]),
+			    AVERAGE('FACT_CRYPTO_DATA'[Open Price])
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 549bc551-559c-4b45-b159-810c91fbc21f
+
+	measure 'Hourly Volume' =
+			
+			SUM('FACT_CRYPTO_DATA'[Volume])
+		lineageTag: 65b54ca9-7bc6-424c-a0ba-672753e22c73
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Volume Std Dev (20 Days)' =
+			
+			STDEVX.P(
+			    DATESINPERIOD (
+			        DIM_CALENDAR[Date],
+			        MAX(DIM_CALENDAR[Date]),
+			        -20,
+			        DAY
+			    ),
+			    [Daily Volume]
+			)
+		lineageTag: 097fa15d-5ab8-4224-83aa-b9b1b26dcfd2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Liquidity Stability Score' =
+			
+			DIVIDE(
+			    [Volume Std Dev (20 Days)],
+			    [Rolling Avg Volume (20 Days)]
+			)
+		lineageTag: ecbbb0b3-4e73-4d3c-93e7-6d69c6ad64f2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Volume Surge Indicator' =
+			
+			DIVIDE(
+			    [Daily Volume],
+			    [Rolling Avg Volume (20 Days)]
+			)
+		formatString: 0.00
+		lineageTag: 3fc68601-921d-4255-a446-e197110cfc9c
+
+	measure 'Normalized Volume' =
+			
+			DIVIDE(
+			    [Daily Volume],
+			    [Rolling Avg Volume (20 Days)]
+			)
+		lineageTag: 31834f4f-4570-4857-8bd3-e3ccb072caa1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Volume Weighted Price Move' = ```
+			
+			ABS([Daily Return (%)]) *
+			[Normalized Volume]
+			
+			```
+		lineageTag: 23d53054-4c60-4162-bce7-4105772f20f2
+
+	measure 'Rolling Volatility (7 Days)' =
+			
+			VAR Window =
+			    DATESINPERIOD(
+			        DIM_CALENDAR[Date],
+			        MAX(DIM_CALENDAR[Date]),
+			        -7,
+			        DAY
+			    )
+			RETURN
+			SQRT(7) *
+			STDEVX.P(
+			    CALCULATETABLE(
+			        VALUES(DIM_CALENDAR[Date]),
+			        Window
+			    ),
+			    [Daily Log Return]
+			)
+		lineageTag: 84b69471-43de-4308-9eae-999dfe579804
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Rolling Volatility (30 Days)' =
+			
+			VAR Window =
+			    DATESINPERIOD(
+			        DIM_CALENDAR[Date],
+			        MAX(DIM_CALENDAR[Date]),
+			        -30,
+			        DAY
+			    )
+			RETURN
+			SQRT(30) *
+			STDEVX.P(
+			    CALCULATETABLE(
+			        VALUES(DIM_CALENDAR[Date]),
+			        Window
+			    ),
+			    [Daily Log Return]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: dd20af5f-8eb9-4b76-95ee-ef5e3786e291
+
+	measure 'Rolling Volatility (14 Days)' = ```
+			
+			VAR Window =
+			    DATESINPERIOD(
+			        DIM_CALENDAR[Date],
+			        MAX(DIM_CALENDAR[Date]),
+			        -14,
+			        DAY
+			    )
+			RETURN
+			SQRT(14) *
+			STDEVX.P(
+			    CALCULATETABLE(
+			        VALUES(DIM_CALENDAR[Date]),
+			        Window
+			    ),
+			    [Daily Log Return]
+			)
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 7839e29e-ffb6-4847-af90-bd661866b504
+
+	measure 'Rolling Correlation (30 Days)' = ```
+			
+			VAR AssetAvg =
+			    AVERAGEX(
+			        DATESINPERIOD(
+			            DIM_CALENDAR[Date],
+			            MAX(DIM_CALENDAR[Date]),
+			            -30,
+			            DAY
+			        ),
+			        [Daily Return (%)]
+			    )
+			
+			VAR BTCAvg = 
+			    AVERAGEX(
+			        DATESINPERIOD(
+			            DIM_CALENDAR[Date],
+			            MAX(DIM_CALENDAR[Date]),
+			            -30,
+			            DAY
+			        ),
+			        [BTC Daily Return]
+			    )
+			
+			VAR CovarValue =
+			    AVERAGEX(
+			        DATESINPERIOD(
+			            DIM_CALENDAR[Date],
+			            MAX(DIM_CALENDAR[Date]),
+			            -30,
+			            DAY
+			        ),
+			        ([Daily Return (%)] - AssetAvg) *
+			        ([BTC Daily Return] - BTCAvg)
+			    )
+			
+			VAR AssetStd =
+			    STDEVX.P(
+			        DATESINPERIOD(
+			            DIM_CALENDAR[Date],
+			            MAX(DIM_CALENDAR[Date]),
+			            -30,
+			            DAY
+			        ),
+			        [Daily Return (%)]
+			    )
+			
+			VAR BTCStd =
+			    STDEVX.P(
+			        DATESINPERIOD(
+			            DIM_CALENDAR[Date],
+			            MAX(DIM_CALENDAR[Date]),
+			            -30,
+			            DAY
+			        ),
+			        [BTC Daily Return]
+			    )
+			
+			RETURN
+			DIVIDE(
+			    CovarValue,
+			    AssetStd * BTCStd
+			)
+			
+			```
+		formatString: 0.00
+		lineageTag: 1bd2cf72-0727-4e6b-8778-01fea75bc889
+
+	measure 'Rolling Avg Return (20 Days)' =
+			
+			VAR EndDate = MAX(DIM_CALENDAR[Date])
+			RETURN
+			AVERAGEX(
+			    DATESINPERIOD(
+			        DIM_CALENDAR[Date],
+			        EndDate,
+			        -20,
+			        DAY
+			    ),
+			    [Daily Log Return]
+			)
+		lineageTag: 981fb7e2-bebf-4168-9886-9f43e573e84f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Rolling Avg Abs Return (20 Days)' =
+			
+			VAR EndDate = MAX(DIM_CALENDAR[Date])
+			RETURN
+			AVERAGEX(
+			    DATESINPERIOD(
+			        DIM_CALENDAR[Date],
+			        EndDate,
+			        -20,
+			        DAY
+			    ),
+			    ABS([Daily Log Return]
+			))
+		lineageTag: 60bffbd1-3fde-41d8-9708-adc92446f414
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Relative Strength vs BTC' =
+			
+			[Daily Return (%)] - [BTC Daily Return]
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 6693b569-e169-473d-8f0d-95ae53146c9e
+
+	measure 'Volatility Expansion Ratio' = ```
+			
+			DIVIDE( 
+			    [Rolling Volatility (7 Days)],
+			    [Rolling Volatility (30 Days)]
+			)
+			```
+		formatString: 0.00
+		lineageTag: 03cadf55-cc0c-425f-952d-f98f14aa0b9f
+
+	measure 'Trend Strength Index' = ```
+			
+			DIVIDE(
+			    ABS([Rolling Avg Return (20 Days)]),
+			    [Rolling Avg Abs Return (20 Days)]
+			)
+			
+			```
+		formatString: 0.00
+		lineageTag: 81d066f5-587c-4e53-a5d9-8b06d0e14bb0
+
+	measure 'Market Regime' =
+			
+			VAR TSIValue = [Trend Strength Index]
+			VAR ReturnValue = [Daily Return (%)]
+			VAR VolValue = [Rolling Volatility (30 Days)]
+			
+			RETURN
+			SWITCH(
+			    TRUE(),
+			
+			    TSIValue > 0.6 && ReturnValue > 0,
+			        "Trending Up",
+			
+			    TSIValue > 0.6 && ReturnValue < 0,
+			        "Trending Down",
+			
+			    TSIValue < 0.3 && VolValue > 0.05,
+			        "High Volatility Range",
+			
+			    "Low Volatility Range"
+			)
+		lineageTag: 7473757d-a36e-4bea-83ea-a41654ed0c36
+
+	measure 'Current Closing Price' =
+			
+			AVERAGE('FACT_CRYPTO_DATA'[Close Price])
+		lineageTag: 8667f0a9-5f39-43aa-a883-00b1ca9c8eab
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Previous Year Closing Price' =
+			
+			CALCULATE(
+			    [Current Closing Price],
+			    SAMEPERIODLASTYEAR(DIM_CALENDAR[Date])
+			)
+		lineageTag: 194b1aca-27c9-4f0e-ab38-2b223647ff84
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'YOY % Change' =
+			
+			DIVIDE(
+			    [Current Closing Price] - [Previous Year Closing Price],
+			    [Previous Year Closing Price]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 52e4d588-a268-4b53-a2a4-6ea925c2ce8b
+
+	measure 'Previous Month Closing Price' =
+			
+			CALCULATE(
+			    [Current Closing Price],
+			    DATEADD(DIM_CALENDAR[Date], -1, MONTH)
+			)
+		lineageTag: 381a285d-eade-4733-a90c-7f5e188e2f4f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'MOM % Change' =
+			
+			DIVIDE(
+			    [Current Closing Price] - [Previous Month Closing Price],
+			    [Previous Month Closing Price]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 399a5dd9-10c8-432e-91dc-7d42e2e120d3
+
+	measure 'Latest Close' =
+			
+			CALCULATE(
+			    [Current Closing Price],
+			    LASTDATE(DIM_CALENDAR[Date])
+			)
+		lineageTag: f5b8f681-df79-4f95-80d7-3141cc2d8a48
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Latest YOY' =
+			
+			CALCULATE(
+			    [YOY % Change],
+			    LASTDATE(DIM_CALENDAR[Date])
+			)
+		lineageTag: 96a9e51f-799d-44c5-ad8d-64e69b35549e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Latest MOM' =
+			
+			CALCULATE(
+			    [MOM % Change],
+			    LASTDATE(DIM_CALENDAR[Date])
+			)
+		lineageTag: 9e99fee6-776e-4a8d-904a-7e3a83117850
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Dynamic YOY Title' = ```
+			
+			VAR SelectedYear = SELECTEDVALUE(DIM_CALENDAR[Year])
+			RETURN
+			"Year over Year Chart For " & SelectedYear - 1 & "-" & SelectedYear 
+			```
+		lineageTag: ee2a2d40-1ca3-4796-8418-54267f5a65f6
+
+	measure 'Dynamic MOM Title' =
+			
+			"Month Over Month Chart For " &
+			SELECTEDVALUE(DIM_CALENDAR[Month], "January") &
+			" " & SELECTEDVALUE(DIM_CALENDAR[Year]) - 1 & "-" & SELECTEDVALUE(DIM_CALENDAR[Year])
+		lineageTag: a15d3636-cb77-4526-83a3-01aae49d21a3
+
+	measure 'Selected Trading Pair' =
+			
+			SELECTEDVALUE(
+			    'FACT_CRYPTO_DATA'[Trading Pair],
+			    "No Trading Pair Selected"
+			)
+		lineageTag: 57e97d14-6162-435d-9d21-c46a9716cc85
+
+	measure 'Selected Month' =
+			
+			SELECTEDVALUE(
+			    DIM_CALENDAR[Month],
+			    "No Month Selected"
+			)
+		lineageTag: 4c779fdb-c979-4e08-8937-a7aa4fbf3ffd
+
+	measure 'Selected Date' =
+			
+			SELECTEDVALUE('DIM_CALENDAR'[Date])
+		formatString: General Date
+		lineageTag: a9245d8e-72da-4a6d-9d37-bdaca7098ef1
+
+	measure High =
+			
+			VAR TargetDate =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Trade Date On]),
+			        REMOVEFILTERS(DIM_CALENDAR)
+			    ) - 1
+			
+			RETURN
+			CALCULATE(
+			    MAX('FACT_CRYPTO_DATA'[High Price]),
+			    REMOVEFILTERS(DIM_CALENDAR),
+			    'FACT_CRYPTO_DATA'[Trade Date On] = TargetDate
+			)
+		lineageTag: 6f862af5-0b1f-48ad-a824-7058dc194c0d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Low =
+			
+			VAR TargetDate =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Trade Date On]),
+			        REMOVEFILTERS(DIM_CALENDAR)
+			    ) - 1
+			
+			RETURN
+			CALCULATE(
+			    MIN('FACT_CRYPTO_DATA'[Low Price]),
+			    REMOVEFILTERS(DIM_CALENDAR),
+			    'FACT_CRYPTO_DATA'[Trade Date On] = TargetDate
+			)
+		lineageTag: 4ff8212c-f79e-4457-85dc-68a7b8e78dee
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Open =
+			
+			VAR TargetDate =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Trade Date On]),
+			        REMOVEFILTERS(DIM_CALENDAR)
+			    ) - 1
+			
+			VAR FirstTime =
+			    CALCULATE(
+			        MIN('FACT_CRYPTO_DATA'[Hour Started At]),
+			        REMOVEFILTERS(DIM_CALENDAR),
+			        'FACT_CRYPTO_DATA'[Trade Date On] = TargetDate
+			    )
+			
+			RETURN
+			CALCULATE(
+			    MAX('FACT_CRYPTO_DATA'[Open Price]),
+			    REMOVEFILTERS(DIM_CALENDAR),
+			    'FACT_CRYPTO_DATA'[Hour Started At] = FirstTime
+			)
+		lineageTag: b5e687b2-eeaf-4604-af42-cc57f303f23e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Close =
+			
+			VAR TargetDate =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Trade Date On]),
+			        REMOVEFILTERS(DIM_CALENDAR)
+			    ) - 1
+			
+			VAR LastTime =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Hour Started At]),
+			        REMOVEFILTERS(DIM_CALENDAR),
+			        'FACT_CRYPTO_DATA'[Trade Date On] = TargetDate
+			    )
+			
+			RETURN
+			CALCULATE(
+			    MAX('FACT_CRYPTO_DATA'[Close Price]),
+			    REMOVEFILTERS(DIM_CALENDAR),
+			    'FACT_CRYPTO_DATA'[Hour Started At] = LastTime
+			)
+		lineageTag: 1ba0055d-a431-4e03-b672-c4b7eb0b0306
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Dynamic CandleStickChart Title' = ```
+			
+			VAR Pair =
+			    SELECTEDVALUE('FACT_CRYPTO_DATA'[Trading Pair], "All Pairs")
+			
+			VAR StartDate =
+			    MIN('DIM_CALENDAR'[Date])
+			
+			VAR EndDate =
+			    MAX('DIM_CALENDAR'[Date])
+			
+			RETURN
+			" Price Trends for " & Pair & " " & " from " & 
+			FORMAT(StartDate, "dd MMM yyyy") &
+			" to " &
+			FORMAT(EndDate, "dd MMM yyyy") 
+			```
+		lineageTag: 87a46de6-d0ca-41ca-85a6-7536649bf134
+
+	measure 'Dynamic RelativeStrength Title' =
+			
+			Var Pair = SELECTEDVALUE(
+			    'FACT_CRYPTO_DATA'[Trading Pair],
+			    "No Trading Pair Selected"
+			)
+			RETURN
+			"Relative Strength of " & Pair & " vs BTCUSDT"
+		lineageTag: f5daacbb-f0cf-444d-9ffe-9853b630f99b
+
+	measure 'Dynamic RollingCorrelation Title' =
+			
+			Var Pair = SELECTEDVALUE(
+			    'FACT_CRYPTO_DATA'[Trading Pair],
+			    "No Trading Pair Selected"
+			)
+			RETURN
+			"Rolling Correlation of " & Pair & " with BTCUSDT" & " (30D)"
+		lineageTag: 68db65be-d005-4a09-8dd3-586747aa119f
+
+	measure 'Dynamic RollingBeta Title' =
+			
+			Var Pair = SELECTEDVALUE(
+			    'FACT_CRYPTO_DATA'[Trading Pair],
+			    "No Trading Pair Selected"
+			)
+			RETURN
+			"Rolling Beta of " & Pair & " to BTCUSDT" & " (30D)"
+		lineageTag: cf12f386-190b-4e16-9c8a-c584a3291c38
+
+	measure 'Hourly High Return' =
+			
+			MAXX(
+			    VALUES('FACT_CRYPTO_DATA'[Hour Started At]),
+			    [Hourly Return (%)]
+			)
+		formatString: 0.00
+		lineageTag: 693192f7-82da-4664-8ea7-1db3d5d5eeb2
+
+	measure 'Hourly Low Return' =
+			
+			MINX(
+			    VALUES('FACT_CRYPTO_DATA'[Hour Started At]),
+			    [Hourly Return (%)]
+			)
+		formatString: 0.00
+		lineageTag: c37964cd-1acb-4fe2-839d-fe93cb65b3ed
+
+	measure 'Previous Day Return' =
+			
+			VAR LatestFactDate =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Trade Date On]),
+			        REMOVEFILTERS(DIM_CALENDAR)
+			    )
+			
+			VAR PreviousAvailableDate =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Trade Date On]),
+			        FILTER(
+			            ALL('FACT_CRYPTO_DATA'),
+			            'FACT_CRYPTO_DATA'[Trade Date On] < LatestFactDate
+			        )
+			    )
+			
+			RETURN
+			CALCULATE(
+			    [Daily Return (%)],
+			    DIM_CALENDAR[Date] = PreviousAvailableDate
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 70570031-bcb3-4583-9b5c-29444accdd8b
+
+	measure 'Previous Available Date' =
+			
+			VAR LatestFactDate =
+			    CALCULATE(
+			        MAX('FACT_CRYPTO_DATA'[Trade Date On]),
+			        REMOVEFILTERS(DIM_CALENDAR)
+			    )
+			
+			RETURN
+			CALCULATE(
+			    MAX('FACT_CRYPTO_DATA'[Trade Date On]),
+			    FILTER(
+			        ALL('FACT_CRYPTO_DATA'),
+			        'FACT_CRYPTO_DATA'[Trade Date On] < LatestFactDate
+			    )
+			)
+		formatString: General Date
+		lineageTag: 32af82d9-873a-4f6c-9ab8-e19a1f6e6764
+
+	measure 'Previous Day Return (Display)' =
+			
+			VAR ReturnValue = [Previous Day Return]
+			
+			VAR Arrow =
+			    IF(
+			        ReturnValue > 0,
+			        "↑",
+			        IF(ReturnValue < 0, "↓", "")
+			    )
+			
+			RETURN
+			Arrow & " " & FORMAT(ReturnValue, "0.00%")
+		lineageTag: 79155e3e-398e-48ff-bc20-1f54137ca707
+
+	measure 'Previous Day Return Color' =
+			
+			VAR ReturnValue = [Previous Day Return]
+			RETURN
+			SWITCH(
+			    TRUE(),
+			    ReturnValue > 0, "#00C853",   -- Green
+			    ReturnValue < 0, "#D50000",   -- Red
+			    "#9E9E9E"                     -- Neutral grey
+			)
+		lineageTag: 37ce5a9f-2285-4fe8-ab7b-5613de8a271e
+
+	measure 'Previous Day Title' =
+			
+			FORMAT([Previous Available Date], "dd MMMM yyyy")
+		lineageTag: 4487e76a-67f2-48c1-bf8f-72c4a52e6f33
+
+	column 'Trading Pair'
+		dataType: string
+		lineageTag: e1d090c2-eab5-4b97-9d84-8d0f21b3beec
+		summarizeBy: none
+		sourceColumn: Trading Pair
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hour Started At'
+		dataType: dateTime
+		formatString: dd-mm-yyyy hh:nn:ss
+		lineageTag: f5c68cc7-1f52-4047-a0ab-e4a42f08ecd5
+		summarizeBy: none
+		sourceColumn: Hour Started At
+
+		variation Variation
+			isDefault
+			relationship: 3b328031-93bc-44ab-869f-6a818645cbe7
+			defaultHierarchy: LocalDateTable_bc564c42-9a49-40dc-a397-0ec5efe4f701.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	column 'Trade Date On'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 13fe7d8f-c5f6-4e84-8db3-7b5b776c117f
+		summarizeBy: none
+		sourceColumn: Trade Date On
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Open Price'
+		dataType: double
+		lineageTag: bc9bccf4-4782-404f-bf42-a1282e775329
+		summarizeBy: sum
+		sourceColumn: Open Price
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'High Price'
+		dataType: double
+		lineageTag: 5b1dfc3f-02b8-4bf8-8682-84b26e1dd217
+		summarizeBy: sum
+		sourceColumn: High Price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Low Price'
+		dataType: double
+		lineageTag: 34c3a6f9-8eeb-42ab-80eb-d7cd3f9d6908
+		summarizeBy: sum
+		sourceColumn: Low Price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Close Price'
+		dataType: double
+		lineageTag: d5206386-d027-4242-9d1e-2c40b71c0139
+		summarizeBy: sum
+		sourceColumn: Close Price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Volume
+		dataType: double
+		lineageTag: 6cce4e38-c7d1-46ae-9f14-fd22390199ab
+		summarizeBy: sum
+		sourceColumn: Volume
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Hour Started DateTime' =
+			
+			FORMAT([Hour Started At], "yyyy-MM-dd HH:mm:ss")
+		dataType: dateTime
+		formatString: Short Time
+		lineageTag: 948c0420-53f3-40ce-a895-38886651cd99
+		summarizeBy: none
+
+		variation Variation
+			isDefault
+			relationship: 871b9903-4cb0-443b-8a94-a2fe7e1aa765
+			defaultHierarchy: LocalDateTable_2a97a44a-a4fd-4d2f-bcbb-3b81e838eb59.'Date Hierarchy'
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition FACT_CRYPTO_DATA = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("syn-crypto-analyst.sql.azuresynapse.net", "sql_dw_silver"),
+				    gold_crypto_candles_reporting = Source{[Schema="gold",Item="crypto_candles_reporting"]}[Data]
+				in
+				    gold_crypto_candles_reporting
+
+	changedProperty = Name
+

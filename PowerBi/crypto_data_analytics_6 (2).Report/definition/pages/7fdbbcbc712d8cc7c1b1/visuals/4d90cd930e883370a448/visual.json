@@ -1,0 +1,103 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "4d90cd930e883370a448",
+  "position": {
+    "x": 433.44262295081973,
+    "y": 74.098360655737707,
+    "z": 0,
+    "height": 392.13114754098365,
+    "width": 729.18032786885249,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DIM_CALENDAR"
+                    }
+                  },
+                  "Property": "Year"
+                }
+              },
+              "queryRef": "DIM_CALENDAR.Year",
+              "nativeQueryRef": "Year",
+              "active": true
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_CRYPTO_DATA"
+                    }
+                  },
+                  "Property": "Trading Pair"
+                }
+              },
+              "queryRef": "FACT_CRYPTO_DATA.Trading Pair",
+              "nativeQueryRef": "Trading Pair"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "FACT_CRYPTO_DATA"
+                        }
+                      },
+                      "Property": "Open Price"
+                    }
+                  },
+                  "Function": 6
+                }
+              },
+              "queryRef": "Sum(FACT_CRYPTO_DATA.Open Price)",
+              "nativeQueryRef": "Median of Open Price"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "FACT_CRYPTO_DATA"
+                      }
+                    },
+                    "Property": "Open Price"
+                  }
+                },
+                "Function": 6
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

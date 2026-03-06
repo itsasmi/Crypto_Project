@@ -1,0 +1,357 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.6.0/schema.json",
+  "name": "fb1d78218d65683ecde7",
+  "position": {
+    "x": 536.875,
+    "y": 71.25,
+    "z": 4000,
+    "height": 398.75,
+    "width": 731.875,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "candlestick95C27C147643B5E840B1D29AC39783F7",
+    "query": {
+      "queryState": {
+        "col_0": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_CRYPTO_DATA"
+                    }
+                  },
+                  "Property": "Trade Date On"
+                }
+              },
+              "queryRef": "gold crypto_candles_reporting.Trade Date On",
+              "nativeQueryRef": "Trade Date On",
+              "active": true,
+              "format": "MMMM d, yyyy"
+            }
+          ]
+        },
+        "col_1": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_CRYPTO_DATA"
+                    }
+                  },
+                  "Property": "Daily Open"
+                }
+              },
+              "queryRef": "gold crypto_candles_reporting.Daily Open2",
+              "nativeQueryRef": "Daily Open2"
+            }
+          ]
+        },
+        "col_2": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_CRYPTO_DATA"
+                    }
+                  },
+                  "Property": "Daily High"
+                }
+              },
+              "queryRef": "gold crypto_candles_reporting.Daily High2",
+              "nativeQueryRef": "Daily High2"
+            }
+          ]
+        },
+        "col_3": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_CRYPTO_DATA"
+                    }
+                  },
+                  "Property": "Daily Low"
+                }
+              },
+              "queryRef": "FACT_CRYPTO_DATA.Daily Low",
+              "nativeQueryRef": "Daily Low2"
+            }
+          ]
+        },
+        "col_4": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_CRYPTO_DATA"
+                    }
+                  },
+                  "Property": "Daily Close"
+                }
+              },
+              "queryRef": "FACT_CRYPTO_DATA.Daily Close",
+              "nativeQueryRef": "Daily Close"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "FACT_CRYPTO_DATA"
+                  }
+                },
+                "Property": "Trade Date On"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "hiddenProps": [
+        {
+          "properties": {
+            "dataVersion": {
+              "expr": {
+                "Literal": {
+                  "Value": "'5.1.0.0'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "plot_0": [
+        {
+          "properties": {
+            "riseFillColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#00990D'"
+                    }
+                  }
+                }
+              }
+            },
+            "fallFillColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#EC3F3F'"
+                    }
+                  }
+                }
+              }
+            },
+            "chartType": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "x1": [
+        {
+          "properties": {
+            "showTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "showLine": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "axisReverse": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "axisRangeType": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "showAxisLabels": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": -0.2
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "y1": [
+        {
+          "properties": {
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": -0.2
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "FACT_CRYPTO_DATA"
+                    }
+                  },
+                  "Property": "Dynamic CandleStickChart Title"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "6D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "ddd4fd426c001c562780",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DIM_CALENDAR"
+              }
+            },
+            "Property": "year_month"
+          }
+        },
+        "type": "Advanced",
+        "howCreated": "User",
+        "objects": {
+          "general": [
+            {
+              "properties": {
+                "isInvertedSelectionMode": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "true"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["data","FACT_CRYPTO_DATA"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table DateTableTemplate_a5c5599e-efa7-48b4-8c3a-670453697468
+ref table DIM_CALENDAR
+ref table data
+ref table LocalDateTable_8f97d4a4-1662-472c-8f49-4de571201914
+ref table dim_date2
+ref table LocalDateTable_b147f382-f22a-4cf7-8de8-a30e4dd8e46e
+ref table LocalDateTable_7c07528f-b5b3-4169-b6df-d8e819a53ca5
+ref table LocalDateTable_adf1e60f-9311-4531-a501-16a9468dd5ed
+ref table FACT_CRYPTO_DATA
+ref table LocalDateTable_bc564c42-9a49-40dc-a397-0ec5efe4f701
+ref table LocalDateTable_2a97a44a-a4fd-4d2f-bcbb-3b81e838eb59
+
+ref cultureInfo en-US
+

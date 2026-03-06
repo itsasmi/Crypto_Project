@@ -1,0 +1,34 @@
+relationship 206bca42-08d0-41b1-9c09-18c47955cfb1
+	joinOnDateBehavior: datePartOnly
+	fromColumn: data.Date
+	toColumn: LocalDateTable_8f97d4a4-1662-472c-8f49-4de571201914.Date
+
+relationship 7239818c-8c62-4f87-8002-f15f6a972fea
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_date2.date_hour_ts
+	toColumn: LocalDateTable_b147f382-f22a-4cf7-8de8-a30e4dd8e46e.Date
+
+relationship f4465b7f-cf29-42f9-9ee8-08333ec28c8c
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_date2.Date
+	toColumn: LocalDateTable_7c07528f-b5b3-4169-b6df-d8e819a53ca5.Date
+
+relationship dff53a41-d25d-441c-be22-5c68cdb4393c
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_date2.date_key
+	toColumn: LocalDateTable_adf1e60f-9311-4531-a501-16a9468dd5ed.Date
+
+relationship 3b328031-93bc-44ab-869f-6a818645cbe7
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FACT_CRYPTO_DATA.'Hour Started At'
+	toColumn: LocalDateTable_bc564c42-9a49-40dc-a397-0ec5efe4f701.Date
+
+relationship 533101e9-8ef5-8182-17dc-36f7cf68acc0
+	fromColumn: FACT_CRYPTO_DATA.'Trade Date On'
+	toColumn: DIM_CALENDAR.Date
+
+relationship 871b9903-4cb0-443b-8a94-a2fe7e1aa765
+	joinOnDateBehavior: datePartOnly
+	fromColumn: FACT_CRYPTO_DATA.'Hour Started DateTime'
+	toColumn: LocalDateTable_2a97a44a-a4fd-4d2f-bcbb-3b81e838eb59.Date
+
