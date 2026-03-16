@@ -1,0 +1,136 @@
+table DimCalendar
+	lineageTag: c783bfb1-c0b1-490f-8f75-e6db85dc68ea
+	dataCategory: Time
+
+	measure 'Selected Date Count' =
+			
+			COUNTROWS(VALUES(DimCalendar[Date]))
+		formatString: 0
+		lineageTag: 6653d406-4297-43db-ab67-7a291b4e2ea2
+
+	column Date
+		isKey
+		formatString: Long Date
+		lineageTag: 9ca8dcee-9ec3-4834-be58-003f20f8dfa3
+		summarizeBy: none
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Year
+		formatString: 0
+		lineageTag: 9e0e617f-4822-4ef3-ba9b-9156e99253b4
+		summarizeBy: none
+		sourceColumn: [year]
+
+		annotation SummarizationSetBy = User
+
+	column MonthNumber
+		formatString: 0
+		lineageTag: 23643038-568e-4b14-b46a-1743d50d0290
+		summarizeBy: none
+		sourceColumn: [month_number]
+
+		annotation SummarizationSetBy = User
+
+	column Month
+		lineageTag: 45543851-93a1-4f66-8800-dc5868c177d8
+		summarizeBy: none
+		sourceColumn: [month_name]
+		sortByColumn: MonthNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column YearMonth
+		lineageTag: cbf84301-06b8-408a-9d90-2e2d6f6cbddb
+		summarizeBy: none
+		sourceColumn: [year_month]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		lineageTag: 45937ab7-129a-4f31-b436-b1fae8c254b6
+		summarizeBy: none
+		sourceColumn: [quarter]
+
+		annotation SummarizationSetBy = Automatic
+
+	column WeekOfYear
+		formatString: 0
+		lineageTag: 90feaacc-6abd-4451-b008-a7c302c06748
+		summarizeBy: none
+		sourceColumn: [week_of_year]
+
+		annotation SummarizationSetBy = User
+
+	column DayOfWeekNumber
+		formatString: 0
+		lineageTag: 852b74c9-e37a-41df-bcb7-4741ae737134
+		summarizeBy: none
+		sourceColumn: [day_of_week]
+
+		annotation SummarizationSetBy = User
+
+	column DayName
+		lineageTag: 3fddeae1-d0d5-4c25-be63-5921ea4856ae
+		summarizeBy: none
+		sourceColumn: [day_name]
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsWeekend
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: ffffb2e0-48dc-4a33-af1a-baf6b3a06e6d
+		summarizeBy: none
+		sourceColumn: [is_weekend]
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Date Hierarchy'
+		lineageTag: 67c845aa-4605-4208-8c53-e4dffc972765
+
+		level Year
+			lineageTag: 7a384e84-49b7-4365-9b53-11e10cf696fa
+			column: Year
+
+		level Quarter
+			lineageTag: 869deaff-179d-4424-a442-a3e1d7ed2e50
+			column: Quarter
+
+		level Month
+			lineageTag: 02f156d8-bf1b-4d5e-a113-3330f24d5d1d
+			column: Month
+
+		level DayName
+			lineageTag: 3fb6d68c-18a2-494f-a42d-b69358c732aa
+			column: DayName
+
+	partition DimCalendar = calculated
+		mode: import
+		source = ```
+				
+				VAR StartDate = DATE(2021, 1, 1)
+				VAR EndDate   = DATE(2026, 12, 31)
+				RETURN
+				ADDCOLUMNS (
+				    CALENDAR (StartDate, EndDate),
+				
+				    "year", YEAR([Date]),
+				    "month_number", MONTH([Date]),
+				    "month_name", FORMAT([Date], "MMM"),
+				    "year_month", FORMAT([Date], "YYYY-MM"),
+				    "quarter", "Q" & FORMAT([Date], "Q"),
+				
+				    "week_of_year", WEEKNUM([Date]),
+				    "day_of_week", WEEKDAY([Date], 2),
+				    "day_name", FORMAT([Date], "DDD"),
+				
+				    "is_weekend", IF(WEEKDAY([Date], 2) > 5, TRUE(), FALSE())
+				)
+				
+				```
+
+	annotation PBI_Id = 36c4845710014001ad1b049ace8b0c40
+

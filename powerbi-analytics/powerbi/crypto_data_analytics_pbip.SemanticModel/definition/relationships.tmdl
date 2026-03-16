@@ -1,0 +1,4 @@
+relationship 533101e9-8ef5-8182-17dc-36f7cf68acc0
+	fromColumn: FactCryptoData.'Trade Date On'
+	toColumn: DimCalendar.Date
+

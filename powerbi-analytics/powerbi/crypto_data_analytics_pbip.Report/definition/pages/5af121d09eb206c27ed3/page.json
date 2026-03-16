@@ -1,0 +1,125 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "5af121d09eb206c27ed3",
+  "displayName": "Market Behavior - Daily",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "pageBinding": {
+    "name": "80f944579ee0c62d66eb",
+    "type": "Default",
+    "parameters": []
+  },
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "ThemeDataColor": {
+                    "ColorId": 1,
+                    "Percent": 0
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "outspace": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "ThemeDataColor": {
+                    "ColorId": 1,
+                    "Percent": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visualInteractions": [
+    {
+      "source": "73fae51ad5e61f270523",
+      "target": "c92bcad11f557db107c2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "73fae51ad5e61f270523",
+      "target": "c030f8bfe1c3b8e551e7",
+      "type": "DataFilter"
+    },
+    {
+      "source": "c92bcad11f557db107c2",
+      "target": "73fae51ad5e61f270523",
+      "type": "DataFilter"
+    },
+    {
+      "source": "c030f8bfe1c3b8e551e7",
+      "target": "fb1d78218d65683ecde7",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c030f8bfe1c3b8e551e7",
+      "target": "c92bcad11f557db107c2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c92bcad11f557db107c2",
+      "target": "c030f8bfe1c3b8e551e7",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c92bcad11f557db107c2",
+      "target": "fb1d78218d65683ecde7",
+      "type": "NoFilter"
+    },
+    {
+      "source": "fb1d78218d65683ecde7",
+      "target": "c92bcad11f557db107c2",
+      "type": "NoFilter"
+    },
+    {
+      "source": "fb1d78218d65683ecde7",
+      "target": "c030f8bfe1c3b8e551e7",
+      "type": "NoFilter"
+    },
+    {
+      "source": "fb1d78218d65683ecde7",
+      "target": "419245d11e70036d54d7",
+      "type": "NoFilter"
+    },
+    {
+      "source": "fb1d78218d65683ecde7",
+      "target": "398825a02d73603b78b8",
+      "type": "NoFilter"
+    },
+    {
+      "source": "fb1d78218d65683ecde7",
+      "target": "8b4e37749060948444ac",
+      "type": "NoFilter"
+    },
+    {
+      "source": "fb1d78218d65683ecde7",
+      "target": "4ffaf8d340d448690eb7",
+      "type": "NoFilter"
+    }
+  ]
+}

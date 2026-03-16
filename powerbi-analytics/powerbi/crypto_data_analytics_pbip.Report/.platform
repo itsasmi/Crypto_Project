@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "crypto_data_analytics_pbip"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "2b33f0a7-c3ad-4b72-ad0f-fc145ca75d47"
+  }
+}
